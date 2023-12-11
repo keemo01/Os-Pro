@@ -100,8 +100,18 @@ public class Server {
                     } else {
                         out.writeObject("PASSWORD_MISMATCH");
                     }
-                }
-                
+                } else if (option.equals("RETRIEVE_USERS")) {
+                    out.writeObject("USERS_LIST");
+                    out.writeObject(accounts.size()); // Sending the number of users
+                    
+                    for (String userId : accounts.keySet()) {
+                        String[] userDetails = accounts.get(userId);
+                        out.writeObject(userId); // Sending user ID
+                        for (String detail : userDetails) {
+                            out.writeObject(detail); // Sending user details
+                        }
+                    }
+                }                       
             }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();

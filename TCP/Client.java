@@ -111,12 +111,36 @@ public class Client {
                         break;
 
                         case 2:
-                            // Retrieve all registered users listing
-                            // Implement functionality to retrieve and display all registered users
-                            // Example:
-                            out.writeObject("RETRIEVE_USERS");
-                            // Receive and display the user listing from the server
-                            break;
+                        // Retrieve all registered users listing
+                        out.writeObject("RETRIEVE_USERS");
+
+                        String usersListResponse = (String) in.readObject();
+                        if (usersListResponse.equals("USERS_LIST")) {
+                            int numUsers = (int) in.readObject(); // Reading the number of users
+                            System.out.println("Registered Users:");
+                            
+                            for (int i = 0; i < numUsers; i++) {
+                                String retrievedUserId = (String) in.readObject(); // Reading user ID
+                                String name = (String) in.readObject(); // Reading user details
+                                String email = (String) in.readObject();
+                                String password = (String) in.readObject();
+                                String address = (String) in.readObject();
+                                String balance = (String) in.readObject();
+                                
+                                // Display user details
+                                System.out.println("User ID: " + retrievedUserId);
+                                System.out.println("Name: " + name);
+                                System.out.println("Email: " + email);
+                                System.out.println("Address: " + address);
+                                System.out.println("Balance: " + balance);
+                                System.out.println("------------------------");
+                            }
+                        } else {
+                            System.out.println("Failed to retrieve user listing.");
+                        }
+                        break;
+
+
                         case 3:
                             // Transfer money to another account
                             // Implement functionality to transfer money to another account
