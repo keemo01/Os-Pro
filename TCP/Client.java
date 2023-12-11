@@ -1,21 +1,25 @@
 package TCP;
+
 import java.io.*;
 import java.net.*;
 import java.util.Scanner;
 
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";
-    private static final int SERVER_PORT = 8888;
+    private static final int SERVER_PORT = 4000;
 
     public static void main(String[] args) {
+        boolean continueSession = true; // Declaration of continueSession
+
         try (Socket socket = new Socket(SERVER_IP, SERVER_PORT);
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
              Scanner scanner = new Scanner(System.in)) {
 
             boolean loggedIn = false;
+            String userId = ""; // Store logged-in user ID
 
-            while (true) {
+            while (continueSession) {
                 if (!loggedIn) {
                     System.out.println("Welcome! Choose an option:");
                     System.out.println("1. Register an account");
@@ -66,6 +70,7 @@ public class Client {
                         if (response.equals("LOGIN_SUCCESS")) {
                             loggedIn = true;
                             System.out.println("Login successful!");
+                            userId = id;
                         } else {
                             System.out.println("Login failed. Try again.");
                         }
@@ -77,38 +82,39 @@ public class Client {
                     System.out.println("3. Transfer money to another account.");
                     System.out.println("4. View all transactions on your bank account.");
                     System.out.println("5. Update your password.");
+                    System.out.println("0. Log out.");
 
                     int choice = scanner.nextInt();
                     scanner.nextLine(); // Consume newline
 
                     switch (choice) {
-                        // Inside the client while loop, under case 1 (Lodge money)
-                        case 1:
-                            // Lodge money
-                            out.writeObject("GET_BALANCE");
-                            System.out.print("Enter your ID: "); // Prompt for ID
-                            String userId = scanner.nextLine(); // Read the user's ID
-                            out.writeObject(userId); // Send the user's ID to the server
 
-                            // Request balance from the server
-                            out.writeObject("REQUEST_BALANCE");
-                            double currentBalance = in.readDouble(); // Read the current balance from the server
-                            System.out.println("Your current balance is: " + currentBalance);
+                        // Inside the case 1 block in the client code
+                        case 1: // Inside the case 1 block in the client code
+                        System.out.print("Enter the amount you want to lodge: ");
+                        double amountToLodge = scanner.nextDouble();
+                        scanner.nextLine(); // Consume newline
 
-                            System.out.print("Enter the amount to lodge: ");
-                            double amountToLodge = scanner.nextDouble();
-                            scanner.nextLine(); // Consume newline
+                        // Send the lodgement details to the server
+                        out.writeObject("LODGE");
+                        out.writeObject(userId); // Send user ID
+                        out.writeObject(String.valueOf(amountToLodge));
 
-                            // Send the request to lodge money to the server
-                            out.writeObject("LODGE_MONEY");
-                            out.writeObject(userId); // Send the user's ID
-                            out.writeDouble(amountToLodge);
-
-                            // Read the updated balance from the server
+                        // Receive the updated balance from the server
+                        String lodgeResponse = (String) in.readObject();
+                        if (lodgeResponse.equals("UPDATED_BALANCE")) {
                             double updatedBalance = in.readDouble();
-                            System.out.println("Updated balance: " + updatedBalance);
-                            break;
-                  
+                            System.out.println("Updated Balance: " + updatedBalance);
+                        }
+
+                        // Receive and process server response for lodgement success
+                        String lodgeSuccessResponse = (String) in.readObject();
+                        System.out.println("Server: " + lodgeSuccessResponse);
+                        break;
+
+
+
+
                         case 2:
                             // Retrieve all registered users listing
                             // Implement functionality to retrieve and display all registered users
@@ -140,6 +146,13 @@ public class Client {
                             out.writeObject(newPassword);
                             String updateResponse = (String) in.readObject();
                             System.out.println("Server: " + updateResponse);
+                            break;
+                        case 0:
+                            // Option to log out
+                            System.out.println("Logged out...");
+                            out.writeObject("LOGOUT"); // Inform server about logout
+                            loggedIn = false; // Reset logged-in state
+                            continueSession = false; // Exit the loop
                             break;
                         default:
                             System.out.println("Invalid choice. Please choose a valid option.");
