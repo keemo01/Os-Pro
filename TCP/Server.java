@@ -86,11 +86,22 @@ public class Server {
                     } else {
                         out.writeObject("USER_NOT_FOUND");
                     }
+                }  else if (option.equals("UPDATE_PASSWORD")) {
+                    String userId = loggedInUsers.get(clientSocket);
+                    String newPassword = (String) in.readObject();
+                    String confirmPassword = (String) in.readObject();
+                
+                    if (newPassword.equals(confirmPassword)) {
+                        String[] userDetails = accounts.get(userId);
+                        userDetails[2] = newPassword; // Update password in the account details
+                        accounts.put(userId, userDetails);
+                        out.writeObject("PASSWORD_UPDATED");
+                        saveAccounts(); // Save the updated account details
+                    } else {
+                        out.writeObject("PASSWORD_MISMATCH");
+                    }
                 }
                 
-                
-                
-                           
             }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();

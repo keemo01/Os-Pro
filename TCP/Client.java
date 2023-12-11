@@ -88,8 +88,6 @@ public class Client {
                     scanner.nextLine(); // Consume newline
 
                     switch (choice) {
-
-                        // Inside the case 1 block in the client code
                         case 1: // Inside the case 1 block in the client code
                         System.out.print("Enter the amount you want to lodge: ");
                         double amountToLodge = scanner.nextDouble();
@@ -112,9 +110,6 @@ public class Client {
                         System.out.println("Server: " + lodgeSuccessResponse);
                         break;
 
-
-
-
                         case 2:
                             // Retrieve all registered users listing
                             // Implement functionality to retrieve and display all registered users
@@ -136,16 +131,24 @@ public class Client {
                             out.writeObject("VIEW_TRANSACTIONS");
                             // Receive and display the transactions from the server
                             break;
-                        case 5:
-                            // Update password
-                            // Implement functionality to update the user's password
-                            // Example:
+                        case 5: // Inside the case 5 block in the client code for updating the password
                             System.out.print("Enter new password: ");
                             String newPassword = scanner.nextLine();
+                            System.out.print("Confirm new password: ");
+                            String confirmNewPassword = scanner.nextLine();
+                        
+                            // Send the new password and confirmation to the server
                             out.writeObject("UPDATE_PASSWORD");
                             out.writeObject(newPassword);
+                            out.writeObject(confirmNewPassword);
+                        
+                            // Receive and process server response for password update
                             String updateResponse = (String) in.readObject();
-                            System.out.println("Server: " + updateResponse);
+                            if (updateResponse.equals("PASSWORD_UPDATED")) {
+                                System.out.println("Password updated successfully!");
+                            } else if (updateResponse.equals("PASSWORD_MISMATCH")) {
+                                System.out.println("Passwords don't match. Please try again.");
+                            }
                             break;
                         case 0:
                             // Option to log out
