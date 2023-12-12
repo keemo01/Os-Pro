@@ -2,27 +2,37 @@ package TCP;
 
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-public class Server {
+class Transaction {
+    String date;
+    double amount;
+    String type; // "LODGE" or "TRANSFER"
+    String senderId;
+    String recipientId;
+}
+
+public class Server { // The Server class is similar to the Client class but handles server-side operations
     private static final int SERVER_PORT = 4000;
     private static HashMap<String, String[]> accounts = new HashMap<>();
     private static HashSet<String> emailSet = new HashSet<>();
     private static HashSet<String> idSet = new HashSet<>();
     private static HashMap<Socket, String> loggedInUsers = new HashMap<>();
+    private static HashMap<String, ArrayList<Transaction>> accountTransactions = new HashMap<>();
     private static final String DATABASE_FILE = "TCP/database.txt";
 
     public static void main(String[] args) {
-        loadAccounts();
+        loadAccounts(); // Load user accounts from a file
         try (ServerSocket serverSocket = new ServerSocket(SERVER_PORT)) {
             System.out.println("Server started. Listening on port " + SERVER_PORT);
 
             while (true) {
-                Socket clientSocket = serverSocket.accept();
+                Socket clientSocket = serverSocket.accept(); // Accept incoming connections
                 System.out.println("Client connected: " + clientSocket);
 
-                new Thread(() -> handleClient(clientSocket)).start();
+                new Thread(() -> handleClient(clientSocket)).start(); //This Handles each client in a separate thread
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -38,7 +48,7 @@ public class Server {
             in = new ObjectInputStream(clientSocket.getInputStream());
 
             while (true) {
-                String option = (String) in.readObject();
+                String option = (String) in.readObject();  // This will read the details and register the user
                 if (option.equals("REGISTER")) {
                     String id = (String) in.readObject();
                     String name = (String) in.readObject();
@@ -161,8 +171,26 @@ public class Server {
                     } else {
                         out.writeObject("SENDER_NOT_FOUND");
                     }
-                }
+                } else if (option.equals("VIEW_TRANSACTIONS")) {
+                    String userId = loggedInUsers.get(clientSocket);
+                    ArrayList<Transaction> transactions = accountTransactions.get(userId);
                 
+                    if (transactions != null) {
+                        out.writeObject("TRANSACTIONS_FOUND");
+                        out.writeObject(transactions.size()); // Sending the number of transactions
+                
+                        for (Transaction transaction : transactions) {
+                            // Send transaction details to the client
+                            out.writeObject(transaction.date);
+                            out.writeObject(transaction.amount);
+                            out.writeObject(transaction.type);
+                            out.writeObject(transaction.senderId);
+                            out.writeObject(transaction.recipientId);
+                        }
+                    } else {
+                        out.writeObject("NO_TRANSACTIONS");
+                    }
+                }
             }             
             
         } catch (IOException | ClassNotFoundException e) {
@@ -202,17 +230,19 @@ public class Server {
     }
 
     private static void loadAccounts() {
+        // Loading user accounts from a saved file
         try (BufferedReader br = new BufferedReader(new FileReader(DATABASE_FILE))) {
             String line;
             while ((line = br.readLine()) != null) {
+                // Reading each line of user info
                 String[] userInfo = line.split(",");
-                String userId = userInfo[0];
-                String[] userDetails = new String[userInfo.length - 1];
+                String userId = userInfo[0]; // Extracting user ID
+                String[] userDetails = new String[userInfo.length - 1]; // Getting user details
                 System.arraycopy(userInfo, 1, userDetails, 0, userDetails.length);
-                accounts.put(userId, userDetails);
+                accounts.put(userId, userDetails); // Putting info into the accounts map
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Ouch! Something went wrong while loading accounts
         }
     }
 
@@ -235,18 +265,19 @@ public class Server {
     
 
     private static void saveAccounts() {
+        // Saving user accounts to a file
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(DATABASE_FILE))) {
             for (String userId : accounts.keySet()) {
-                String[] userDetails = accounts.get(userId);
-                StringBuilder line = new StringBuilder(userId);
+                String[] userDetails = accounts.get(userId); // Fetching user details
+                StringBuilder line = new StringBuilder(userId); // Preparing line to save
                 for (String detail : userDetails) {
-                    line.append(",").append(detail);
+                    line.append(",").append(detail); // Appending user details to the line
                 }
-                bw.write(line.toString());
-                bw.newLine();
+                bw.write(line.toString()); // Writing user info to the file
+                bw.newLine(); // Moving to the next line
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(); 
         }
     }
 

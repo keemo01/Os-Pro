@@ -115,14 +115,14 @@ public class Client {
 
                             String usersListResponse = (String) in.readObject();
                             if (usersListResponse.equals("USERS_LIST")) {
-                                int numUsers = (int) in.readObject(); // Reading the number of users
+                                int numUsers = (int) in.readObject(); //This Reads the number of users
                                 System.out.println("Registered Users:");
                                 
                                 for (int i = 0; i < numUsers; i++) {
                                     String retrievedUserId = (String) in.readObject(); // Reading user ID
                                     String name = (String) in.readObject(); // Reading user details
                                     String email = (String) in.readObject();
-                                    String password = (String) in.readObject();
+                                    String password = (String) in.readObject(); // Didnt include variable as dont want passwords to be displayed
                                     String address = (String) in.readObject();
                                     String balance = (String) in.readObject();
                                     
@@ -139,33 +139,53 @@ public class Client {
                             }
                             break;
                             case 3:
-                            // Transfer money to another account
-                            System.out.print("Enter recipient's email or ID: ");
-                            String recipient = scanner.nextLine();
-                            System.out.print("Enter the amount to transfer: ");
-                            double amountToTransfer = scanner.nextDouble();
-                            scanner.nextLine(); // Consume newline
+                                //Transfer money to another account when providing the following recipient details: • Email Address • PPS Number
+                                System.out.print("Enter recipient's email or ID: ");
+                                String recipient = scanner.nextLine();
+                                System.out.print("Enter the amount to transfer: ");
+                                double amountToTransfer = scanner.nextDouble();
+                                scanner.nextLine(); // Consume newline
 
-                            // Send transfer details to the server
-                            out.writeObject("TRANSFER");
-                            out.writeObject(userId); // Send sender's ID
-                            out.writeObject(recipient); // Send recipient's email or ID
-                            out.writeObject(String.valueOf(amountToTransfer));
+                                // Send transfer details to the server
+                                out.writeObject("TRANSFER");
+                                out.writeObject(userId); // Send sender's ID
+                                out.writeObject(recipient); // Send recipient's email or ID
+                                out.writeObject(String.valueOf(amountToTransfer));
 
-                            // Receive and process server response for the transfer
-                            String transferResponse = (String) in.readObject();
-                            System.out.println("Server: " + transferResponse);
-                            break;
+                                // Receive and process server response for the transfer
+                                String transferResponse = (String) in.readObject();
+                                System.out.println("Server: " + transferResponse);
+                                break;
 
-
-                        case 4:
-                            // View all transactions
-                            // Implement functionality to view all transactions on the bank account
-                            // Example:
+                        case 4: // View all transactions
                             out.writeObject("VIEW_TRANSACTIONS");
-                            // Receive and display the transactions from the server
+                            
+                            String transactionResponse = (String) in.readObject();
+                            if (transactionResponse.equals("TRANSACTIONS_FOUND")) {
+                                int numTransactions = (int) in.readObject(); // Reading the number of transactions
+                                System.out.println("Transactions:");
+                                
+                                for (int i = 0; i < numTransactions; i++) {
+                                    String date = (String) in.readObject();
+                                    double amount = (double) in.readObject();
+                                    String type = (String) in.readObject();
+                                    String senderId = (String) in.readObject();
+                                    String recipientId = (String) in.readObject();
+                                    
+                                    // Display transaction details
+                                    System.out.println("Date: " + date);
+                                    System.out.println("Amount: " + amount);
+                                    System.out.println("Type: " + type);
+                                    System.out.println("Sender: " + senderId);
+                                    System.out.println("Recipient: " + recipientId);
+                                    System.out.println("------------------------");
+                                }
+                            } else {
+                                System.out.println("No transactions found.");
+                            }
                             break;
-                        case 5: // Inside the case 5 block in the client code for updating the password
+                    
+                        case 5: // Transfer money to another account when providing the following recipient details: • Email Address • PPS Number
                             System.out.print("Enter new password: ");
                             String newPassword = scanner.nextLine();
                             System.out.print("Confirm new password: ");
