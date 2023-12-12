@@ -111,8 +111,60 @@ public class Server {
                             out.writeObject(detail); // Sending user details
                         }
                     }
-                }                       
-            }
+                } 
+                // Server code, inside the 'TRANSFER' block
+                else if (option.equals("TRANSFER")) {
+                    String senderId = (String) in.readObject();
+                    String recipientDetails = (String) in.readObject(); // Email or ID
+                    double amountToTransfer = Double.parseDouble((String) in.readObject());
+                
+                    if (accounts.containsKey(senderId)) {
+                        String[] senderDetails = accounts.get(senderId);
+                        double senderBalance = Double.parseDouble(senderDetails[senderDetails.length - 1]);
+                
+                        // Check if sender has sufficient balance
+                        if (senderBalance >= amountToTransfer) {
+                            String recipientId = ""; // Find recipient ID from email or ID provided
+                            boolean recipientFound = false;
+                
+                            // Search for recipient based on email or ID
+                            for (String id : accounts.keySet()) {
+                                String[] details = accounts.get(id);
+                                if (details[1].equals(recipientDetails) || id.equals(recipientDetails)) {
+                                    recipientId = id;
+                                    recipientFound = true;
+                                    break;
+                                }
+                            }
+                
+                            if (recipientFound) {
+                                // Update sender's balance
+                                double newSenderBalance = senderBalance - amountToTransfer;
+                                senderDetails[senderDetails.length - 1] = String.valueOf(newSenderBalance);
+                                accounts.put(senderId, senderDetails);
+                
+                                // Update recipient's balance
+                                String[] recipientAccount = accounts.get(recipientId);
+                                double recipientBalance = Double.parseDouble(recipientAccount[recipientAccount.length - 1]);
+                                double newRecipientBalance = recipientBalance + amountToTransfer;
+                                recipientAccount[recipientAccount.length - 1] = String.valueOf(newRecipientBalance);
+                                accounts.put(recipientId, recipientAccount);
+                
+                                out.writeObject("TRANSFER_SUCCESS");
+                                saveAccounts(); // Save the updated account details
+                            } else {
+                                out.writeObject("RECIPIENT_NOT_FOUND");
+                            }
+                        } else {
+                            out.writeObject("INSUFFICIENT_BALANCE");
+                        }
+                    } else {
+                        out.writeObject("SENDER_NOT_FOUND");
+                    }
+                }
+                
+            }             
+            
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         } finally {
@@ -164,6 +216,24 @@ public class Server {
         }
     }
 
+    // Modify the findRecipient method in the Server class
+    private static String findRecipient(String email, String pps) {
+        for (String userId : accounts.keySet()) {
+            String[] userDetails = accounts.get(userId);
+            String userPPS = userDetails[1]; 
+            String userEmail = userDetails[3]; // Assuming email is at index 2, adjust as needed
+    
+            System.out.println("Checking: " + userEmail + " - " + userPPS); // Print to debug
+    
+            if (userEmail.equals(email) && userPPS.equals(pps)) {
+                return userId;
+            }
+        }
+        return null;
+    }
+    
+    
+
     private static void saveAccounts() {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(DATABASE_FILE))) {
             for (String userId : accounts.keySet()) {
@@ -180,6 +250,4 @@ public class Server {
         }
     }
 
-    
-    
 }

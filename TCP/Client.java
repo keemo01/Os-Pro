@@ -89,65 +89,75 @@ public class Client {
 
                     switch (choice) {
                         case 1: // Inside the case 1 block in the client code
-                        System.out.print("Enter the amount you want to lodge: ");
-                        double amountToLodge = scanner.nextDouble();
-                        scanner.nextLine(); // Consume newline
+                            System.out.print("Enter the amount you want to lodge: ");
+                            double amountToLodge = scanner.nextDouble();
+                            scanner.nextLine(); // Consume newline
 
-                        // Send the lodgement details to the server
-                        out.writeObject("LODGE");
-                        out.writeObject(userId); // Send user ID
-                        out.writeObject(String.valueOf(amountToLodge));
+                            // Send the lodgement details to the server
+                            out.writeObject("LODGE");
+                            out.writeObject(userId); // Send user ID
+                            out.writeObject(String.valueOf(amountToLodge));
 
-                        // Receive the updated balance from the server
-                        String lodgeResponse = (String) in.readObject();
-                        if (lodgeResponse.equals("UPDATED_BALANCE")) {
-                            double updatedBalance = in.readDouble();
-                            System.out.println("Updated Balance: " + updatedBalance);
-                        }
-
-                        // Receive and process server response for lodgement success
-                        String lodgeSuccessResponse = (String) in.readObject();
-                        System.out.println("Server: " + lodgeSuccessResponse);
-                        break;
-
-                        case 2:
-                        // Retrieve all registered users listing
-                        out.writeObject("RETRIEVE_USERS");
-
-                        String usersListResponse = (String) in.readObject();
-                        if (usersListResponse.equals("USERS_LIST")) {
-                            int numUsers = (int) in.readObject(); // Reading the number of users
-                            System.out.println("Registered Users:");
-                            
-                            for (int i = 0; i < numUsers; i++) {
-                                String retrievedUserId = (String) in.readObject(); // Reading user ID
-                                String name = (String) in.readObject(); // Reading user details
-                                String email = (String) in.readObject();
-                                String password = (String) in.readObject();
-                                String address = (String) in.readObject();
-                                String balance = (String) in.readObject();
-                                
-                                // Display user details
-                                System.out.println("User ID: " + retrievedUserId);
-                                System.out.println("Name: " + name);
-                                System.out.println("Email: " + email);
-                                System.out.println("Address: " + address);
-                                System.out.println("Balance: " + balance);
-                                System.out.println("------------------------");
+                            // Receive the updated balance from the server
+                            String lodgeResponse = (String) in.readObject();
+                            if (lodgeResponse.equals("UPDATED_BALANCE")) {
+                                double updatedBalance = in.readDouble();
+                                System.out.println("Updated Balance: " + updatedBalance);
                             }
-                        } else {
-                            System.out.println("Failed to retrieve user listing.");
-                        }
-                        break;
 
-
-                        case 3:
-                            // Transfer money to another account
-                            // Implement functionality to transfer money to another account
-                            // Example:
-                            // Collect recipient details (email, PPS number, etc.)
-                            // Send details to the server for the transfer process
+                            // Receive and process server response for lodgement success
+                            String lodgeSuccessResponse = (String) in.readObject();
+                            System.out.println("Server: " + lodgeSuccessResponse);
                             break;
+                        case 2:
+                            // Retrieve all registered users listing
+                            out.writeObject("RETRIEVE_USERS");
+
+                            String usersListResponse = (String) in.readObject();
+                            if (usersListResponse.equals("USERS_LIST")) {
+                                int numUsers = (int) in.readObject(); // Reading the number of users
+                                System.out.println("Registered Users:");
+                                
+                                for (int i = 0; i < numUsers; i++) {
+                                    String retrievedUserId = (String) in.readObject(); // Reading user ID
+                                    String name = (String) in.readObject(); // Reading user details
+                                    String email = (String) in.readObject();
+                                    String password = (String) in.readObject();
+                                    String address = (String) in.readObject();
+                                    String balance = (String) in.readObject();
+                                    
+                                    // Display user details
+                                    System.out.println("User ID: " + retrievedUserId);
+                                    System.out.println("Name: " + name);
+                                    System.out.println("Email: " + email);
+                                    System.out.println("Address: " + address);
+                                    System.out.println("Balance: " + balance);
+                                    System.out.println("------------------------");
+                                }
+                            } else {
+                                System.out.println("Failed to retrieve user listing.");
+                            }
+                            break;
+                            case 3:
+                            // Transfer money to another account
+                            System.out.print("Enter recipient's email or ID: ");
+                            String recipient = scanner.nextLine();
+                            System.out.print("Enter the amount to transfer: ");
+                            double amountToTransfer = scanner.nextDouble();
+                            scanner.nextLine(); // Consume newline
+
+                            // Send transfer details to the server
+                            out.writeObject("TRANSFER");
+                            out.writeObject(userId); // Send sender's ID
+                            out.writeObject(recipient); // Send recipient's email or ID
+                            out.writeObject(String.valueOf(amountToTransfer));
+
+                            // Receive and process server response for the transfer
+                            String transferResponse = (String) in.readObject();
+                            System.out.println("Server: " + transferResponse);
+                            break;
+
+
                         case 4:
                             // View all transactions
                             // Implement functionality to view all transactions on the bank account
