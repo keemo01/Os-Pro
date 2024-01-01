@@ -126,6 +126,11 @@ public class Server {
                     String recipientDetails = (String) in.readObject(); // Email or ID
                     double amountToTransfer = Double.parseDouble((String) in.readObject());
 
+                    // Adding print statements can aid in tracing recipient details for accurate processing.
+                    System.out.println("Sender ID: " + senderId);
+                    System.out.println("Recipient Details: " + recipientDetails);
+                    System.out.println("Amount to Transfer: " + amountToTransfer);
+                
                     // Transaction handling code integrated here
                     Transaction senderTransaction = new Transaction();
                     senderTransaction.date = LocalDate.now().toString();
