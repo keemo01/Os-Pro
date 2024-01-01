@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.time.LocalDate;
 
 class Transaction {
     String date;
@@ -14,11 +14,9 @@ class Transaction {
     String recipientId;
 }
 
-public class Server { // The Server class is similar to the Client class but handles server-side operations
+public class Server { 
     private static final int SERVER_PORT = 4000;
     private static HashMap<String, String[]> accounts = new HashMap<>();
-    private static HashSet<String> emailSet = new HashSet<>();
-    private static HashSet<String> idSet = new HashSet<>();
     private static HashMap<Socket, String> loggedInUsers = new HashMap<>();
     private static HashMap<String, ArrayList<Transaction>> accountTransactions = new HashMap<>();
     private static final String DATABASE_FILE = "TCP/database.txt";
@@ -127,12 +125,35 @@ public class Server { // The Server class is similar to the Client class but han
                     String senderId = (String) in.readObject();
                     String recipientDetails = (String) in.readObject(); // Email or ID
                     double amountToTransfer = Double.parseDouble((String) in.readObject());
+
+                    // Transaction handling code integrated here
+                    Transaction senderTransaction = new Transaction();
+                    senderTransaction.date = LocalDate.now().toString();
+                    senderTransaction.amount = amountToTransfer; // Setting the transferred amount
+                    senderTransaction.type = "TRANSFER"; // Identifying the transaction as a transfer
+                    senderTransaction.senderId = senderId; // Assigning sender's ID for reference
+                    senderTransaction.recipientId = recipientDetails; // Assigning recipient's ID
+
+                    ArrayList<Transaction> senderTransactions = accountTransactions.getOrDefault(senderId, new ArrayList<>());
+                    senderTransactions.add(senderTransaction);
+                    accountTransactions.put(senderId, senderTransactions);
+
+                    Transaction recipientTransaction = new Transaction();
+                    recipientTransaction.date = LocalDate.now().toString();
+                    recipientTransaction.amount = amountToTransfer; // Setting the received amount
+                    recipientTransaction.type = "TRANSFER"; // Identifys the type of transaction made
+                    recipientTransaction.senderId = senderId; 
+                    recipientTransaction.recipientId = recipientDetails; 
+
+                    ArrayList<Transaction> recipientTransactions = accountTransactions.getOrDefault(recipientDetails, new ArrayList<>());
+                    recipientTransactions.add(recipientTransaction);
+                    accountTransactions.put(recipientDetails, recipientTransactions);
                 
                     if (accounts.containsKey(senderId)) {
                         String[] senderDetails = accounts.get(senderId);
                         double senderBalance = Double.parseDouble(senderDetails[senderDetails.length - 1]);
                 
-                        // Check if sender has sufficient balance
+                        // Check if sender has the amount of money needed to transfer 
                         if (senderBalance >= amountToTransfer) {
                             String recipientId = ""; // Find recipient ID from email or ID provided
                             boolean recipientFound = false;
@@ -220,6 +241,7 @@ public class Server { // The Server class is similar to the Client class but han
         }
     }
 
+    // Function to check for duplicate emails
     private static boolean checkDuplicateEmail(String email) {
         for (String[] userDetails : accounts.values()) {
             if (userDetails[1].equals(email)) {
@@ -230,7 +252,12 @@ public class Server { // The Server class is similar to the Client class but han
     }
 
     private static void loadAccounts() {
-        // Loading user accounts from a saved file
+        File file = new File(DATABASE_FILE); // Creating a File object for validation
+
+        if (!file.exists()) {
+            System.err.println("Database file does not exist!");
+            return; 
+        }
         try (BufferedReader br = new BufferedReader(new FileReader(DATABASE_FILE))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -242,39 +269,22 @@ public class Server { // The Server class is similar to the Client class but han
                 accounts.put(userId, userDetails); // Putting info into the accounts map
             }
         } catch (IOException e) {
-            e.printStackTrace(); // Ouch! Something went wrong while loading accounts
+            e.printStackTrace(); 
         }
     }
-
-    // Modify the findRecipient method in the Server class
-    private static String findRecipient(String email, String pps) {
-        for (String userId : accounts.keySet()) {
-            String[] userDetails = accounts.get(userId);
-            String userPPS = userDetails[1]; 
-            String userEmail = userDetails[3]; // Assuming email is at index 2, adjust as needed
-    
-            System.out.println("Checking: " + userEmail + " - " + userPPS); // Print to debug
-    
-            if (userEmail.equals(email) && userPPS.equals(pps)) {
-                return userId;
-            }
-        }
-        return null;
-    }
-    
-    
 
     private static void saveAccounts() {
-        // Saving user accounts to a file
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(DATABASE_FILE))) {
+        File file = new File(DATABASE_FILE); // Creates a file
+
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
             for (String userId : accounts.keySet()) {
-                String[] userDetails = accounts.get(userId); // Fetching user details
-                StringBuilder line = new StringBuilder(userId); // Preparing line to save
+                String[] userDetails = accounts.get(userId); // gets user details
+                StringBuilder line = new StringBuilder(userId);
                 for (String detail : userDetails) {
-                    line.append(",").append(detail); // Appending user details to the line
+                    line.append(",").append(detail); // adds the user details to the line
                 }
-                bw.write(line.toString()); // Writing user info to the file
-                bw.newLine(); // Moving to the next line
+                bw.write(line.toString()); // Writing the user info to the file
+                bw.newLine(); // Moving it to the next line
             }
         } catch (IOException e) {
             e.printStackTrace(); 

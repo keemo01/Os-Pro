@@ -122,7 +122,6 @@ public class Client {
                                     String retrievedUserId = (String) in.readObject(); // Reading user ID
                                     String name = (String) in.readObject(); // Reading user details
                                     String email = (String) in.readObject();
-                                    String password = (String) in.readObject(); // Didnt include variable as dont want passwords to be displayed
                                     String address = (String) in.readObject();
                                     String balance = (String) in.readObject();
                                     
@@ -138,8 +137,8 @@ public class Client {
                                 System.out.println("Failed to retrieve user listing.");
                             }
                             break;
-                            case 3:
-                                //Transfer money to another account when providing the following recipient details: • Email Address • PPS Number
+                        case 3:
+                                //Transfer money to another account
                                 System.out.print("Enter recipient's email or ID: ");
                                 String recipient = scanner.nextLine();
                                 System.out.print("Enter the amount to transfer: ");
@@ -162,7 +161,7 @@ public class Client {
                             
                             String transactionResponse = (String) in.readObject();
                             if (transactionResponse.equals("TRANSACTIONS_FOUND")) {
-                                int numTransactions = (int) in.readObject(); // Reading the number of transactions
+                                int numTransactions = (int) in.readObject(); // This will be to read the number of transactions
                                 System.out.println("Transactions:");
                                 
                                 for (int i = 0; i < numTransactions; i++) {
@@ -185,7 +184,7 @@ public class Client {
                             }
                             break;
                     
-                        case 5: // Transfer money to another account when providing the following recipient details: • Email Address • PPS Number
+                        case 5: // Transfer money to another account
                             System.out.print("Enter new password: ");
                             String newPassword = scanner.nextLine();
                             System.out.print("Confirm new password: ");
