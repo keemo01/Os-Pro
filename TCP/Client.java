@@ -109,34 +109,35 @@ public class Client {
                             String lodgeSuccessResponse = (String) in.readObject();
                             System.out.println("Server: " + lodgeSuccessResponse);
                             break;
-                        case 2:
-                            // Retrieve all registered users listing
-                            out.writeObject("RETRIEVE_USERS");
 
-                            String usersListResponse = (String) in.readObject();
-                            if (usersListResponse.equals("USERS_LIST")) {
-                                int numUsers = (int) in.readObject(); //This Reads the number of users
-                                System.out.println("Registered Users:");
-                                
-                                for (int i = 0; i < numUsers; i++) {
-                                    String retrievedUserId = (String) in.readObject(); // Reading user ID
-                                    String name = (String) in.readObject(); // Reading user details
-                                    String email = (String) in.readObject();
-                                    String address = (String) in.readObject();
-                                    String balance = (String) in.readObject();
-                                    
-                                    // Display user details
-                                    System.out.println("User ID: " + retrievedUserId);
-                                    System.out.println("Name: " + name);
-                                    System.out.println("Email: " + email);
-                                    System.out.println("Address: " + address);
-                                    System.out.println("Balance: " + balance);
-                                    System.out.println("------------------------");
+                            case 2:
+                            try (BufferedReader br = new BufferedReader(new FileReader("TCP/database.txt"))) {
+                                String line;
+                                while ((line = br.readLine()) != null) {
+                                    String[] userDetails = line.split(",");
+                                    if (userDetails.length >= 6) {
+                                        String userFileId = userDetails[0];
+                                        String name = userDetails[1];
+                                        String email = userDetails[2];
+                                        String address = userDetails[4];
+                                        String balance = userDetails[5];
+                                      
+                                        System.out.println("User ID: " + userFileId);
+                                        System.out.println("Name: " + name);
+                                        System.out.println("Email: " + email);
+                                        System.out.println("Address: " + address);
+                                        System.out.println("Balance: " + balance);
+                                        System.out.println("------------------------");
+                                    } else {
+                                        System.out.println("Invalid user data format: " + line);
+                                    }
                                 }
-                            } else {
-                                System.out.println("Failed to retrieve user listing.");
+                            } catch (IOException e) {
+                                e.printStackTrace();
                             }
                             break;
+                         
+
                         case 3:
                                 //Transfer money to another account
                                 System.out.print("Enter recipient's email or ID: ");

@@ -2,6 +2,8 @@ package TCP;
 
 import java.io.*;
 import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.time.LocalDate;
@@ -108,18 +110,25 @@ public class Server {
                     } else {
                         out.writeObject("PASSWORD_MISMATCH");
                     }
-                } else if (option.equals("RETRIEVE_USERS")) {
+                }  else if (option.equals("RETRIEVE_USERS")) {
                     out.writeObject("USERS_LIST");
-                    out.writeObject(accounts.size()); // Sending the number of users
-                    
-                    for (String userId : accounts.keySet()) {
-                        String[] userDetails = accounts.get(userId);
-                        out.writeObject(userId); // Sending user ID
-                        for (String detail : userDetails) {
-                            out.writeObject(detail); // Sending user details
+                
+                    try (BufferedReader br = new BufferedReader(new FileReader(DATABASE_FILE))) {
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            String[] userDetails = line.split(",");
+                            for (int i = 0; i < userDetails.length; i++) {
+                                out.writeObject(userDetails[i].trim()); // Trimmed each detail before sending
+                            }
+                            out.writeObject(""); // Sending an empty string to mark the end of user details
                         }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        out.writeObject(""); // Sending an empty string to mark the end of user details in case of error
                     }
-                } 
+                }
+                
+                    
                 // Server code, inside the 'TRANSFER' block
                 else if (option.equals("TRANSFER")) {
                     String senderId = (String) in.readObject();
