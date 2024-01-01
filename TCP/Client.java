@@ -110,18 +110,23 @@ public class Client {
                             System.out.println("Server: " + lodgeSuccessResponse);
                             break;
 
-                            case 2:
+                        case 2:
                             try (BufferedReader br = new BufferedReader(new FileReader("TCP/database.txt"))) {
                                 String line;
                                 while ((line = br.readLine()) != null) {
+                                    // Splitting the user details using commas
                                     String[] userDetails = line.split(",");
+                                    
+                                    // Checking if the user details are complete
                                     if (userDetails.length >= 6) {
-                                        String userFileId = userDetails[0];
-                                        String name = userDetails[1];
-                                        String email = userDetails[2];
-                                        String address = userDetails[4];
-                                        String balance = userDetails[5];
-                                      
+                                        // Getting user information 
+                                        String userFileId = userDetails[0]; // User ID
+                                        String name = userDetails[1]; // User's Name
+                                        String email = userDetails[2]; // User's Email
+                                        String address = userDetails[4]; // User's Address
+                                        String balance = userDetails[5]; // User's Balance
+                                        
+                                        // Displaying the user details
                                         System.out.println("User ID: " + userFileId);
                                         System.out.println("Name: " + name);
                                         System.out.println("Email: " + email);
@@ -133,10 +138,11 @@ public class Client {
                                     }
                                 }
                             } catch (IOException e) {
+                                // Handling IO exceptions if encountered
                                 e.printStackTrace();
                             }
                             break;
-                         
+
 
                         case 3:
                                 //Transfer money to another account
